@@ -1,0 +1,4 @@
+One of the biggest downsides of v1 is its weak resistance against noise and low sensor count. 
+The DS18B20 1-wire temperature sensor seems to solve both problems. One can connect a huge amount of sensors together onto a single bus and its digital so we won't have so many misreadings when your charger is blasting out electromagnetic currents. 
+
+There also needs to be a new connector on the board and maybe a cheap 32 bit chip to be able to read stuff more quickly. 
