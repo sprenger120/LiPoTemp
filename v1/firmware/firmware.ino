@@ -242,7 +242,7 @@ void setupADC() {
   ADCSRA |= (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1);
 }
 
-#define ADC_AVERAGES_CNT 5
+#define ADC_AVERAGES_CNT 20
 char getADCReading(char index) {
   if (index < 0 || index > 5) {
     return -100; //invalid index
@@ -254,19 +254,11 @@ char getADCReading(char index) {
   delay(5); //settle
 
   short sum = 0;
-  short lastReading = -100;
-  short currReading = -100;
   for(char i=0;i<ADC_AVERAGES_CNT;++i) {
     ADCSRA |= (1<<ADSC);
     while(ADCSRA & (1<<ADSC)) {}
-    currReading = short(ADCL) | ( short(ADCH)<<8);
-    if (lastReading == -100) {
-      lastReading = currReading;
-    }
-    if (abs(currReading - lastReading) > 20) {
-      return -100; //Error in aquisition
-    }
-    sum += currReading;
+    sum += short(ADCL) | ( short(ADCH)<<8);
+    delayMicroseconds(100); //low pass filter around 10khz 
   }
   sum /= ADC_AVERAGES_CNT;
 
@@ -339,8 +331,17 @@ void loop() {
           tempWarningAndCriticalMenu_Index = i; 
           break;
         } 
+        // all clear, update temperature 
+        temperatures[i] = currReading;
+      }else{
+        //initial readout to determine if senspors are present
+        //no sensor connected when reading below threshold 
+        //although design features pulldown resistors, strong inducted currents still drive
+        //value up
+        if (currReading > 20) {
+          temperatures[i] = currReading;
+        }
       }
-      temperatures[i] = currReading;
    }
    firstTempReading = false;
 
